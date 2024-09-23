@@ -130,8 +130,8 @@ export default function MainPage() {
 
   const DrawerItems = [
     { name: 'Dashboard', icon: <DashboardIcon />, route: '/dashboard' },
-    { name: 'Product', icon: <Inventory2Icon />, route: '/product' },
-    { name: 'Team', icon: <Groups2Icon />, route: '/product-list' },
+    { name: 'All Products', icon: <Inventory2Icon />, route: '/product' },
+    { name: 'My Products', icon: <Groups2Icon />, route: '/product-list' },
     { name: 'Add Product', icon: <ProductionQuantityLimitsOutlined />, route: '/add-product' },
     { name: 'User Account', icon: <PersonIcon />, route: '/user-account' },
   ];
