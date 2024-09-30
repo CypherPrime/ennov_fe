@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../api/services'; 
+import api from '../../api/services';
 
 interface Product {
   id: string;
@@ -35,28 +35,38 @@ export const deleteProductById = createAsyncThunk(
   }
 );
 
+function handlePromiseLifecycle(builder: any, action: any) {
+  builder
+    .addCase(action.pending, (state: any) => {
+      state.loading = true;
+      state.error = null;
+      state.success = false;
+    })
+    .addCase(action.fulfilled, (state: any, action: any) => {
+      state.loading = false;
+      state.success = true;
+    })
+    .addCase(action.rejected, (state: any, action: any) => {
+      state.loading = false;
+      state.error = action.payload as string;
+      state.success = false;
+    });
+}
+
 const productSlice = createSlice({
   name: 'product',
   initialState,
-  reducers: {},
+  reducers: {
+    resetState: (state) => {
+      state.loading = false;
+      state.error = null;
+      state.success = false;
+    },
+  },
   extraReducers: (builder) => {
-    builder
-      .addCase(deleteProductById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.success = false;
-      })
-      .addCase(deleteProductById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = true;
-        // state.products = state.products.filter(product => product.id !== action.payload);
-      })
-      .addCase(deleteProductById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-        state.success = false;
-      });
+    handlePromiseLifecycle(builder, deleteProductById);
   },
 });
 
+export const { resetState } = productSlice.actions;
 export default productSlice.reducer;

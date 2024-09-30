@@ -1,14 +1,7 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../api/services';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import api from "../../api/services";
 
 interface AuthState {
-  user: User | null;
   token: string | null;
   loading: boolean;
   error: string | null;
@@ -16,7 +9,6 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  user: null,
   token: null,
   loading: false,
   error: null,
@@ -24,10 +16,10 @@ const initialState: AuthState = {
 };
 
 export const loginUser = createAsyncThunk(
-  'user/login',
+'/',
   async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/users/login', { email, password });
+      const response = await api.post('/auth/login', { email, password });
       return response.data; 
     } catch (error: any) {
       return rejectWithValue(error.response.data.message || 'Login failed');
@@ -36,10 +28,10 @@ export const loginUser = createAsyncThunk(
 );
 
 export const signupUser = createAsyncThunk(
-  'auth/signupUser',
+  '/signupUser',
   async ({ name, email, password }: { name: string; email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/users', { name, email, password });
+      const response = await api.post('/auth/signup', { name, email, password });
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data.message || 'Signup failed');
@@ -51,63 +43,42 @@ export const logoutUser = createAsyncThunk('auth/logoutUser', async () => {
   return true;
 });
 
+function handlePromiseLifecycle(builder:any, action:any, defaultErrorMsg = 'Operation failed') {
+  builder
+    .addCase(action.pending, (state:any) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(action.fulfilled, (state:any, action:any) => {
+      localStorage.setItem('token',action.payload.accessToken)
+      state.loading = false;
+      state.token = action.payload.accessToken;
+      state.isAuthenticated = true;
+    })
+    .addCase(action.rejected, (state:any, action:any) => {
+      state.loading = false;
+      state.error = action.payload as string || defaultErrorMsg;
+      state.isAuthenticated = false;
+    });
+}
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
     resetAuthState(state) {
-      state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
     },
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
-        // alert(JSON.stringify(action.payload))
-        console.log(action.payload, 'loggedIn Payload');
-        localStorage.setItem('userId', action.payload.id);
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-        state.isAuthenticated = false;
-      })
-
-      .addCase(signupUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(signupUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true; 
-        // alert(JSON.stringify(action.payload))
-        console.log(action.payload, 'SignUp  Payload');
-        localStorage.setItem('userId', action.payload.id);
-      })
-      .addCase(signupUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null;
-        state.token = null;
-        state.isAuthenticated = false;
-      });
+    handlePromiseLifecycle(builder, loginUser);
+    handlePromiseLifecycle(builder, signupUser);
+    builder.addCase(logoutUser.fulfilled, (state) => {
+      state.token = null;
+      state.isAuthenticated = false;
+    });
   },
 });
 

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../api/services'; 
+import api from '../../api/services';
 
 interface Product {
   id: string;
@@ -19,6 +19,7 @@ const initialState: SearchState = {
   loading: false,
   error: null,
 };
+
 export const searchProducts = createAsyncThunk(
   'products/search',
   async (query: string, { rejectWithValue }) => {
@@ -31,6 +32,22 @@ export const searchProducts = createAsyncThunk(
   }
 );
 
+function handlePromiseLifecycle(builder: any, action: any) {
+  builder
+    .addCase(action.pending, (state: any) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(action.fulfilled, (state: any, action: any) => {
+      state.loading = false;
+      state.products = action.payload;
+    })
+    .addCase(action.rejected, (state: any, action: any) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+}
+
 const searchSlice = createSlice({
   name: 'search',
   initialState,
@@ -42,19 +59,7 @@ const searchSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(searchProducts.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(searchProducts.fulfilled, (state, action) => {
-        state.loading = false;
-        state.products = action.payload;
-      })
-      .addCase(searchProducts.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
+    handlePromiseLifecycle(builder, searchProducts);
   },
 });
 

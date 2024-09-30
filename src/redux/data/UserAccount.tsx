@@ -7,6 +7,7 @@ interface User {
   email: string;
   dateJoined: string;
 }
+
 interface UpdateUser {
   name: string;
   email: string;
@@ -63,51 +64,35 @@ export const deleteUserById = createAsyncThunk(
   }
 );
 
+function handlePromiseLifecycle(builder: any, action: any) {
+  builder
+    .addCase(action.pending, (state: UserState) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(action.fulfilled, (state: UserState, action: any) => {
+      state.loading = false;
+      if (action.meta.arg) {
+        state.user = action.payload; 
+        state.success = true;
+      } else {
+        state.user = null;
+      }
+    })
+    .addCase(action.rejected, (state: UserState, action: any) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+}
+
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder
-      .addCase(fetchUserById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchUserById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-      })
-      .addCase(fetchUserById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-
-      .addCase(updateUserById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateUserById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-        state.success = true;
-      })
-      .addCase(updateUserById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-
-      .addCase(deleteUserById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteUserById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = null;
-      })
-      .addCase(deleteUserById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
+    handlePromiseLifecycle(builder, fetchUserById);
+    handlePromiseLifecycle(builder, updateUserById);
+    handlePromiseLifecycle(builder, deleteUserById);
   },
 });
 

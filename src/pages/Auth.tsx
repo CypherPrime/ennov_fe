@@ -34,12 +34,11 @@ const Authentication: React.FC = () => {
   });
 
   const dispatch: AppDispatch = useDispatch();
-  const { loading, error, isAuthenticated, user } = useSelector((state: RootState) => state.authSlice);
+  const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.authSlice);
 
   const navigate = useNavigate();
-
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated === true) {
       toast.success("Successfully logged in!");
       navigate('/dashboard');
     }
@@ -56,10 +55,11 @@ const Authentication: React.FC = () => {
     }));
   };
 
-  const handleLoginOnSubmit = (evt: FormEvent<HTMLFormElement>): void => {
+  const handleLoginOnSubmit = async(evt: FormEvent<HTMLFormElement>): Promise<void> => {
     evt.preventDefault();
     const { email, password } = state;
-    dispatch(loginUser({ email, password }));
+    const response = await dispatch(loginUser({ email, password }));
+    console.log(response, "user data");
   };
 
   const handleChange = (evt: ChangeEvent<HTMLInputElement>): void => {
@@ -70,7 +70,7 @@ const Authentication: React.FC = () => {
     }));
   };
 
-  const handleOnSubmit = (evt: FormEvent<HTMLFormElement>): void => {
+  const handleOnSubmit = async(evt: FormEvent<HTMLFormElement>): Promise<void> => {
     evt.preventDefault();
     const { name, email, password } = registerState;
     dispatch(signupUser({ name, email, password }));

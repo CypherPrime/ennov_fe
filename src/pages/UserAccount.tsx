@@ -39,7 +39,6 @@ const UserAccounts: React.FC = () => {
 
   useEffect(() => {
     if (success) {
-      toast.success('User updated successfully');
       setIsEditable(false);
     }
     if (error) {
@@ -57,7 +56,6 @@ const UserAccounts: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // dispatch(updateUserById({ userId, formState }));
     console.log('====================================');
     console.log('not functional now');
     console.log('====================================');
@@ -67,8 +65,6 @@ const UserAccounts: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       dispatch(deleteUserById(userId!)).then(() => {
         toast.success('User deleted successfully');
-        
-        // navigate('/logi');
       });
     }
   };

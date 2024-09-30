@@ -20,20 +20,37 @@ const initialState: ProductState = {
   success: false,
 };
 
-
 export const updateProduct = createAsyncThunk(
-  'products/addProduct',
-  async ({productId, product }:{productId:String, product:Product} ,{ rejectWithValue }) => {
+  'products/updateProduct',
+  async ({ productId, product }: { productId: string; product: Product }, { rejectWithValue }) => {
     try {
       const response = await api.patch(`/products/${productId}`, product);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response.data.message || 'Failed to Update product');
+      return rejectWithValue(error.response.data.message || 'Failed to update product');
     }
   }
 );
 
-const EditProductSlice = createSlice({
+function handlePromiseLifecycle(builder: any, action: any) {
+  builder
+    .addCase(action.pending, (state: any) => {
+      state.loading = true;
+      state.error = null;
+      state.success = false;
+    })
+    .addCase(action.fulfilled, (state: any) => {
+      state.loading = false;
+      state.success = true;
+    })
+    .addCase(action.rejected, (state: any, action: any) => {
+      state.loading = false;
+      state.error = action.payload as string;
+      state.success = false;
+    });
+}
+
+const editProductSlice = createSlice({
   name: 'product',
   initialState,
   reducers: {
@@ -44,23 +61,9 @@ const EditProductSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(updateProduct.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.success = false;
-      })
-      .addCase(updateProduct.fulfilled, (state) => {
-        state.loading = false;
-        state.success = true;
-      })
-      .addCase(updateProduct.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-        state.success = false;
-      });
+    handlePromiseLifecycle(builder, updateProduct);
   },
 });
 
-export const { resetState } = EditProductSlice.actions;
-export default EditProductSlice.reducer;
+export const { resetState } = editProductSlice.actions;
+export default editProductSlice.reducer;

@@ -6,9 +6,9 @@ interface Product {
   title: string;
   price: number;
   description: string;
-  ownerId:null;
-  createdAt:string;
-  updatedAt:string
+  ownerId: null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface ProductState {
@@ -26,35 +26,37 @@ const initialState: ProductState = {
 export const fetchProductsByOwner = createAsyncThunk(
   'products/fetchById',
   async (productId: string, { rejectWithValue }) => {
-    // alert(productId)
     try {
-      const response = await api.get(`/products/owner/${productId as string}`);
+      const response = await api.get(`/products/owner/${productId}`);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response.data.message || 'Failed to fetch product');
+      return rejectWithValue(error.response.data.message || 'Failed to fetch products');
     }
   }
 );
 
+function handlePromiseLifecycle(builder: any, action: any) {
+  builder
+    .addCase(action.pending, (state: any) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(action.fulfilled, (state: any, action: any) => {
+      state.loading = false;
+      state.products = action.payload;
+    })
+    .addCase(action.rejected, (state: any, action: any) => {
+      state.loading = false;
+      state.error = action.payload as string || 'Failed to fetch products';
+    });
+}
 
 const productByOwnerSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder
-      .addCase(fetchProductsByOwner.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchProductsByOwner.fulfilled, (state, action) => {
-        state.loading = false;
-        state.products = action.payload;
-      })
-      .addCase(fetchProductsByOwner.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to fetch products';
-      });
+    handlePromiseLifecycle(builder, fetchProductsByOwner);
   },
 });
 

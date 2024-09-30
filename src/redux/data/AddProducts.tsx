@@ -32,6 +32,23 @@ export const addProduct = createAsyncThunk(
   }
 );
 
+function handlePromiseLifecycle(builder: any, action: any) {
+  builder
+    .addCase(action.pending, (state:any) => {
+      state.loading = true;
+      state.error = null;
+      state.success = false;
+    })
+    .addCase(action.fulfilled, (state:any) => {
+      state.loading = false;
+      state.success = true;
+    })
+    .addCase(action.rejected, (state:any, action:any) => {
+      state.loading = false;
+      state.error = action.payload as string;
+      state.success = false;
+    });
+}
 
 const productSlice = createSlice({
   name: 'product',
@@ -44,21 +61,7 @@ const productSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(addProduct.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.success = false;
-      })
-      .addCase(addProduct.fulfilled, (state) => {
-        state.loading = false;
-        state.success = true;
-      })
-      .addCase(addProduct.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-        state.success = false;
-      })
+    handlePromiseLifecycle(builder, addProduct);
   },
 });
 
